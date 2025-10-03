@@ -16,8 +16,11 @@ import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.command.OrderedRenderCommandQueue;
+import net.minecraft.client.render.command.OrderedRenderCommandQueueImpl;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.state.EntityRenderState;
+import net.minecraft.client.render.state.CameraRenderState;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.MathHelper;
@@ -29,6 +32,7 @@ public class WireframeEntityRenderer {
     private static final MatrixStack matrices = new MatrixStack();
 
     private static Renderer3D renderer;
+    private static final OrderedRenderCommandQueue entityRenderCommandQueue = new OrderedRenderCommandQueueImpl();
 
     private static Color sideColor;
     private static Color lineColor;
@@ -64,7 +68,9 @@ public class WireframeEntityRenderer {
 
         matrices.push();
         matrices.scale((float) scale, (float) scale, (float) scale);
-        renderer.render(state, matrices, MyVertexConsumerProvider.INSTANCE, 15);
+        renderer.render(state, matrices, entityRenderCommandQueue, new CameraRenderState());
+        // todo this just adds the entities to a list, we need to actually render them somewhere by calling
+        //  net.minecraft.class_11688.method_73012
         matrices.pop();
     }
 

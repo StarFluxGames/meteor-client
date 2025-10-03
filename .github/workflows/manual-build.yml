@@ -5,9 +5,13 @@ concurrency:
   cancel-in-progress: false
 
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch:
+    inputs:
+      releaseversion:
+        description: "The release version"
+        required: true
+        default: "0.0.0"
+        type: string
 
 jobs:
   build:

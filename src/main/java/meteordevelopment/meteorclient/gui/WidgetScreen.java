@@ -18,8 +18,12 @@ import meteordevelopment.meteorclient.utils.Utils;
 import meteordevelopment.meteorclient.utils.misc.CursorStyle;
 import meteordevelopment.meteorclient.utils.misc.input.Input;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.input.CharInput;
+import net.minecraft.client.input.KeyInput;
+import net.minecraft.client.util.MacWindowUtil;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 
@@ -114,25 +118,32 @@ public abstract class WidgetScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    // todo rename bl when appropriate
+    public boolean mouseClicked(Click arg, boolean bl) {
         if (locked) return false;
 
+        double mouseX = arg.x();
+        double mouseY = arg.y();
         double s = mc.getWindow().getScaleFactor();
+
         mouseX *= s;
         mouseY *= s;
 
-        return root.mouseClicked(mouseX, mouseY, button, false);
+        return root.mouseClicked(mouseX, mouseY, arg.button(), bl);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public boolean mouseReleased(Click arg) {
         if (locked) return false;
 
+        double mouseX = arg.x();
+        double mouseY = arg.y();
         double s = mc.getWindow().getScaleFactor();
+
         mouseX *= s;
         mouseY *= s;
 
-        return root.mouseReleased(mouseX, mouseY, button);
+        return root.mouseReleased(mouseX, mouseY, arg.button());
     }
 
     @Override
@@ -159,31 +170,31 @@ public abstract class WidgetScreen extends Screen {
     }
 
     @Override
-    public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
+    public boolean keyReleased(KeyInput arg) {
         if (locked) return false;
 
-        if ((modifiers == GLFW_MOD_CONTROL || modifiers == GLFW_MOD_SUPER) && keyCode == GLFW_KEY_9) {
+        if ((arg.modifiers() == GLFW_MOD_CONTROL || arg.modifiers() == GLFW_MOD_SUPER) && arg.key() == GLFW_KEY_9) {
             debug = !debug;
             return true;
         }
 
-        if ((keyCode == GLFW_KEY_ENTER || keyCode == GLFW_KEY_KP_ENTER) && enterAction != null) {
+        if ((arg.key() == GLFW_KEY_ENTER || arg.key() == GLFW_KEY_KP_ENTER) && enterAction != null) {
             enterAction.run();
             return true;
         }
 
-        return super.keyReleased(keyCode, scanCode, modifiers);
+        return super.keyReleased(arg);
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyInput arg) {
         if (locked) return false;
 
-        boolean shouldReturn = root.keyPressed(keyCode, modifiers) || super.keyPressed(keyCode, scanCode, modifiers);
+        boolean shouldReturn = root.keyPressed(arg.key(), arg.modifiers()) || super.keyPressed(arg);
         if (shouldReturn) return true;
 
         // Select next text box if TAB was pressed
-        if (keyCode == GLFW_KEY_TAB) {
+        if (arg.key() == GLFW_KEY_TAB) {
             AtomicReference<WTextBox> firstTextBox = new AtomicReference<>(null);
             AtomicBoolean done = new AtomicBoolean(false);
             AtomicBoolean foundFocused = new AtomicBoolean(false);
@@ -214,10 +225,10 @@ public abstract class WidgetScreen extends Screen {
             return true;
         }
 
-        boolean control = MinecraftClient.IS_SYSTEM_MAC ? modifiers == GLFW_MOD_SUPER : modifiers == GLFW_MOD_CONTROL;
+        boolean control = MacWindowUtil.IS_MAC ? arg.modifiers() == GLFW_MOD_SUPER : arg.modifiers() == GLFW_MOD_CONTROL;
 
-        return (control && keyCode == GLFW_KEY_C && toClipboard())
-            || (control && keyCode == GLFW_KEY_V && fromClipboard());
+        return (control && arg.key() == GLFW_KEY_C && toClipboard())
+            || (control && arg.key() == GLFW_KEY_V && fromClipboard());
     }
 
     public void keyRepeated(int key, int modifiers) {
@@ -227,10 +238,10 @@ public abstract class WidgetScreen extends Screen {
     }
 
     @Override
-    public boolean charTyped(char chr, int keyCode) {
+    public boolean charTyped(CharInput arg) {
         if (locked) return false;
 
-        return root.charTyped(chr);
+        return root.charTyped(((char) arg.codepoint()));
     }
 
     @Override
